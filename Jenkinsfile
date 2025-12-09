@@ -9,7 +9,7 @@ pipeline {
   environment {
     TOMCAT_HOST = '100.48.46.229'
     TOMCAT_USER = 'ubuntu'
-    WEBAPPS_DIR = '/opt/tomcat/tomcat10/webapps/'
+    WEBAPPS_DIR = '/opt/tomcat10/webapps/'
     SSH_CREDENTIALS_ID = 'ec2-ssh'
   }
 
