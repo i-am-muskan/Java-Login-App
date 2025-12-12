@@ -938,3 +938,185 @@ Keep these commands handy for managing your container:
 | **Container repeatedly exiting** | Check the logs for Java or Tomcat errors: `docker logs login-app` |
 
 -----
+
+
+
+## Java Login App Orchestration with Minikube (EC2)
+
+This is a comprehensive, step-by-step guide to orchestrating your Java Login App using **Minikube** on an Ubuntu EC2 instance, covering the full flow from building the Docker image to accessing the application via Kubernetes.
+
+This guide assumes you have already completed **Docker installation** and have the `Java-Login-App` project structure ready with the `Dockerfile`.
+
+### Phase 1: Docker Setup and Preparation
+
+#### Step 1: Build Docker Image
+
+Use the existing `Dockerfile` to build your application image and tag it with your Docker Hub username and a version.
+
+```bash
+docker build -t harshitha/login-app:1.0 .
+```
+
+#### Step 2: Push to Docker Hub
+
+You need to push the image to a publicly accessible repository (like Docker Hub) so that Kubernetes (Minikube) can pull it.
+
+1.  **Log in to Docker Hub:**
+    ```bash
+    docker login
+    ```
+2.  **Push the image:**
+    ```bash
+    docker push harshitha/login-app:1.0
+    ```
+
+### Phase 2: Install and Start Minikube
+
+Minikube is used here to create a local, single-node Kubernetes cluster on your EC2 instance.
+
+#### Step 3: Install `kubectl` (Kubernetes Command-Line Tool)
+
+`kubectl` is essential for managing the Kubernetes cluster.
+
+1.  **Update system:**
+    ```bash
+    sudo apt update
+    ```
+2.  **Download latest stable `kubectl` binary:**
+    ```bash
+    curl -LO "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
+    ```
+3.  **Make it executable:**
+    ```bash
+    chmod +x kubectl
+    ```
+4.  **Move it to system PATH:**
+    ```bash
+    sudo mv kubectl /usr/local/bin/
+    ```
+5.  **Verify installation:**
+    ```bash
+    kubectl version --client
+    ```
+
+#### Step 4: Install and Start Minikube
+
+Minikube requires Docker to be installed and running.
+
+1.  **Install Minikube prerequisites (Docker is already installed):**
+    ```bash
+    sudo apt install -y docker.io
+    ```
+2.  **Download and install Minikube binary:**
+    ```bash
+    curl -LO https://storage.googleapis.com/minikube/releases/latest/minikube-linux-amd64
+    sudo install minikube-linux-amd64 /usr/local/bin/minikube
+    ```
+3.  **Start Minikube:** We will use the `docker` driver for simplicity on an EC2 instance.
+    ```bash
+    minikube start --driver=docker
+    ```
+    *(Wait for Minikube to initialize the cluster. This may take a few minutes.)*
+
+### Phase 3: Kubernetes Deployment
+
+#### Step 5: Create Deployment YAML
+
+Create a file named `deployment.yaml`. This defines the Pods (containers) and ensures a specified number of replicas are running.
+
+```yaml
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: login-app
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: login-app
+  template:
+    metadata:
+      labels:
+        app: login-app
+    spec:
+      containers:
+      - name: login-app
+        image: yourusername/login-app:1.0   # <-- Ensure this is your Docker Hub image tag
+        ports:
+        - containerPort: 8080
+```
+
+#### Step 6: Create Service YAML
+
+Create a file named `service.yaml`. A Service provides a stable network endpoint for the Deployment. We use `NodePort` to expose the application outside the cluster.
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: login-app-service
+spec:
+  type: NodePort
+  selector:
+    app: login-app
+  ports:
+    - port: 8080       # Port the Service exposes inside the cluster
+      targetPort: 8080 # Port the container is listening on (Tomcat)
+      nodePort: 30080  # Port exposed on the EC2/Minikube Node (Must be between 30000-32767)
+```
+
+#### Step 7: Apply YAMLs to Kubernetes
+
+Apply both the Deployment and the Service configurations to the Minikube cluster using `kubectl`.
+
+```bash
+kubectl apply -f deployment.yaml
+kubectl apply -f service.yaml
+```
+
+**Check Status:**
+
+Verify that the Pod and Service are running correctly:
+
+```bash
+kubectl get pods
+kubectl get svc
+```
+
+  * `kubectl get pods` should show your Pod in a `Running` state.
+  * `kubectl get svc` should show `login-app-service` with `NodePort` mapping `30080`.
+
+### Phase 4: Access the Application
+
+#### Step 8: Get Minikube IP
+
+The Minikube service is running *inside* a virtual machine or container on your EC2 instance. You need its IP address to access the app.
+
+```bash
+minikube ip
+```
+
+*(Example output: `192.168.49.2`)*
+
+#### Step 9: Open Application
+
+Using the IP address from the previous step and the `nodePort` (`30080`) you defined in `service.yaml`, open the application in your browser:
+
+```
+http://<minikube-ip>:30080/pages/login.jsp
+```
+
+*Example:*
+`http://192.168.49.2:30080/pages/login.jsp`
+
+> **Note on EC2 Security Group:** Since Minikube runs *within* the EC2 instance, you must ensure the EC2 Security Group is open for port **30080** to allow external access.
+
+#### Step 10: Verify Logs (Troubleshooting)
+
+If the application does not load, check the container logs for errors:
+
+```bash
+kubectl logs deployment/login-app
+```
+
+-----
