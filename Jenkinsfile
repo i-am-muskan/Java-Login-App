@@ -29,7 +29,7 @@ stages {
     stage('Push Docker Image') {
         steps {
             withCredentials([usernamePassword(
-                credentialsId: dockerhub-creds,
+                credentialsId: DOCKER_CREDS,
                 usernameVariable: 'DOCKER_USER',
                 passwordVariable: 'DOCKER_PASS'
             )]) 
