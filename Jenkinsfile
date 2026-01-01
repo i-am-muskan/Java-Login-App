@@ -20,11 +20,12 @@ stages {
         steps {
         sh 'mvn clean package '
         }
-        
+    }
     stage('Build Image') {
         steps {
             sh 'docker build -t $DOCKER_IMAGE:latest'
         }
+    }
     stage('Push Docker Image') {
         steps {
             withCredentials([usernamePassword(
@@ -39,11 +40,7 @@ stages {
         }
     }
     
-    }
-
-
-        
-    }
+}
 
 
 }
