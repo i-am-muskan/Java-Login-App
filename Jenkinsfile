@@ -24,7 +24,7 @@ pipeline {
         stage('Build Docker Image') {
             steps {
 
-                sh "docker build -t $DOCKER_IMAGE:latest "
+                sh "docker build -t $DOCKER_IMAGE:latest ."
             }
         }
         stage('Push Image') {
