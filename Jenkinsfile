@@ -30,8 +30,8 @@ pipeline {
         stage('Push Image') {
             steps {
                 withCredentials([usernamePassword(
-                    credentialsId: DOCKER_CREDS
-                    usernameVariable: 'DOCKER_USER'
+                    credentialsId: DOCKER_CREDS,
+                    usernameVariable: 'DOCKER_USER',
                     passwordVariable: 'DOCKER_PASS'
                 )]) {
 
