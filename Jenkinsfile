@@ -31,8 +31,8 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(
                     credentialsId: DOCKER_CREDS
-                    usernameVariable: DOCKER_USER
-                    passwordVariable: DOCKER_PASS
+                    usernameVariable: 'DOCKER_USER'
+                    passwordVariable: 'DOCKER_PASS'
                 )]) {
 
                     sh """
