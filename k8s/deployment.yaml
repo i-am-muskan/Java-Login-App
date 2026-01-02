@@ -14,6 +14,6 @@ spec:
     spec:
       containers:
       - name: login-app
-        image: harshitha30galla/java-login-app:latest
+        image: i-am-muskan/java-login-app:latest
         ports:
-        - containerPort: 8080
+        - containerPort: 8081
