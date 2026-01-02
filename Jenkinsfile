@@ -2,7 +2,7 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE = "i-am-muskan/java-login-app"
+        DOCKER_IMAGE = "iammuskan/java-login-app"
         DOCKER_CREDS = "dockerhub-creds"
     }
 
