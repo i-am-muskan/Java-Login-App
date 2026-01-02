@@ -16,4 +16,4 @@ spec:
       - name: login-app
         image: iammuskan/java-login-app:latest
         ports:
-        - containerPort: 8081
+        - containerPort: 8080
